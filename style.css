@@ -125,6 +125,58 @@ h1 {
     margin-left: 10px;
 }
 
+/* Основной стиль для слайдера */
+.score-slider {
+  -webkit-appearance: none; /* Убираем стандартный стиль для браузеров Webkit */
+  width: 100%; /* Занимает всю ширину родительского контейнера */
+  height: 10px; /* Высота слайдера */
+  border-radius: 5px; /* Скругленные углы */
+  background: linear-gradient(to right, #ff6f61, #ffb347); /* Градиентный фон */
+  outline: none; /* Убираем обводку */
+  transition: background 0.3s ease; /* Плавное изменение фона при наведении */
+}
+
+/* Стиль для ползунка */
+.score-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; /* Убираем стандартный стиль для ползунка */
+  width: 20px; /* Ширина ползунка */
+  height: 20px; /* Высота ползунка */
+  border-radius: 50%; /* Круглый ползунок */
+  background: #ff6f61; /* Цвет ползунка */
+  cursor: pointer; /* Курсор как указатель */
+  transition: background 0.3s ease, transform 0.3s ease; /* Плавное изменение фона и анимация при движении */
+}
+
+/* Эффект при наведении на ползунок */
+.score-slider::-webkit-slider-thumb:hover {
+  background: #ffb347; /* Изменение цвета при наведении */
+  transform: scale(1.1); /* Немного увеличиваем размер ползунка */
+}
+
+/* Стиль для ползунка в Firefox */
+.score-slider::-moz-range-thumb {
+  width: 20px; /* Ширина ползунка */
+  height: 20px; /* Высота ползунка */
+  border-radius: 50%; /* Круглый ползунок */
+  background: #ff6f61; /* Цвет ползунка */
+  cursor: pointer; /* Курсор как указатель */
+  transition: background 0.3s ease, transform 0.3s ease; /* Плавное изменение фона и анимация при движении */
+}
+
+/* Эффект при наведении на ползунок в Firefox */
+.score-slider::-moz-range-thumb:hover {
+  background: #ffb347; /* Изменение цвета при наведении */
+  transform: scale(1.1); /* Немного увеличиваем размер ползунка */
+}
+
+/* Стиль для значения слайдера */
+.score-slider-value {
+  margin-top: 10px;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #333;
+}
+
 .table {
     width: 100%;
     border-collapse: collapse;
