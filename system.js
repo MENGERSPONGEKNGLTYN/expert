@@ -1,0 +1,547 @@
+let session;
+let consoleLOG = true;
+let questionsData = [];
+let currentQuestionIndex = 0;
+let drinksData;
+let binary = false;
+// ------------------------------- ЭКСПЕРТНАЯ СИСТЕМА -------------------------------
+// Загрузка программы Prolog
+async function initSystem() {
+    try {
+        // Инициализация Tau Prolog
+        session = pl.create();
+
+        // Загрузка программы Prolog
+        await session.consult("knowledge.pl", {
+            success: function () {
+                displayNextQuestion();
+            }
+        });
+    } catch (error) {
+        console.error("Ошибка инициализации Tau-Prolog:", error);
+        showError("Не удалось загрузить систему");
+    }
+}
+
+// Сброс введённых данных
+function resetSystem() {
+    // Очищаем базу предпочтений
+    session.query('retractall(preference(_, _)).');
+    session.answer(function () {
+        // Очищаем результаты
+        document.getElementById('result-container').innerHTML = '';
+        document.getElementById('preferences-display').innerHTML = '';
+        // Начинаем заново
+        currentQuestionIndex = 0;
+        displayNextQuestion();
+    });
+}
+
+// ------------------------ ВЫГРУЗКА ВОПРОСОВ ДЛЯ ПОЛЬЗОВАТЕЛЯ ------------------------
+// Получение вопросов из БЗ и вариантов ответа (опций)
+async function fetchAllQuestions() {
+    return new Promise((resolve) => {
+        const questions = [];
+        session.query('question(Question, Options).');
+        const answerHandler = (answer) => {
+            if (answer) {
+                questions.push({
+                    label: answer.links.Question,  // Текст вопроса
+                    options: answer.links.Options  // Варианты ответов
+                });
+                session.answer(answerHandler);
+            } else {
+                resolve(questions);
+            }
+        };
+        session.answer(answerHandler);
+    });
+}
+
+// Парсинг опций вопроса в массив объектов
+function parseOptions(term) {
+    const options = [];
+
+    function traverseList(node) {
+        if (!node || node.id === '[]') return;
+        if (node.id === '.' && node.args.length === 2) {
+            const head = node.args[0];
+            const tail = node.args[1];
+
+            if (head.id === 'option' && head.args.length === 2) {
+                if (head.args[0].id === 'binary_question' && head.args[1].id === '') {
+                    binary = true
+                } else {
+                    options.push({
+                        value: head.args[0].id,
+                        label: head.args[1].id
+                    });
+                }
+            }
+            traverseList(tail); // Рекурсивно обрабатываем хвост
+        }
+    }
+
+    traverseList(term);
+    return options;
+}
+
+// ------------------------ ОБРАБОТКА ОТВЕТОВ ПОЛЬЗОВАТЕЛЯ ------------------------
+// Получение ответа на вопрос
+async function submitAnswers() {
+    try {
+        const answers = getSelectedAnswers();
+        validateAnswers(answers);
+        await addNewPreferences(answers);
+        await proceedToNextStep();
+    } catch (error) {
+        handleSubmissionError(error);
+    }
+}
+
+// Получение выбранных ответов
+function getSelectedAnswers() {
+    if (!binary) {
+        const sliders = document.querySelectorAll('.score-slider');
+        const answers = [];
+
+        sliders.forEach(slider => {
+            const value = parseInt(slider.value) || 0;
+            if (value >= 0) {
+                answers.push({
+                    option: slider.dataset.option,
+                    weight: value / 10 // Нормализация к 0-1
+                });
+            }
+        });
+        return answers;
+
+    } else {
+        const checkboxes = document.querySelectorAll('input[name="option"]:checked');
+        return Array.from(checkboxes).map(cb => cb.value)
+    }
+}
+
+
+
+// Валидация ответов
+function validateAnswers(answers) {
+    if (answers.length === 0) {
+        throw new Error("Пожалуйста, выберите хотя бы один вариант");
+    }
+}
+
+// Добавление новых предпочтений
+async function addNewPreferences(answers) {
+    if (!binary) {
+        const preferencePromises = answers.map(answer => {
+            return new Promise(resolve => {
+                // session.query(`assertz(preference(${answer}, 1)).`);
+                session.query(`assertz(preference(${answer.option}, ${answer.weight})).`);
+                session.answer(() => {
+                    console.log(`Добавлено: ${answer.option} (${answer.weight})`);
+                    resolve();
+                    });
+            });
+        });
+        await Promise.all(preferencePromises);
+    } else {
+        const preferencePromises = answers.map(answer => {
+            return new Promise(resolve => {
+                session.query(`assertz(preference(${answer}, 1)).`);
+                session.answer(() => {
+                    console.log(`Добавлено preference: ${answer}`);
+                    resolve();
+                });
+            });
+        });
+        await Promise.all(preferencePromises);
+    }
+
+}
+
+// Переход к следующему шагу
+async function proceedToNextStep() {
+    currentQuestionIndex++;
+    console.log("Все предпочтения добавлены. Текущий вопрос:", currentQuestionIndex);
+    binary = false;
+    // Условие окончания - заданы все вопросы
+    if (currentQuestionIndex >= questionsData.length) {
+        await determineDrink();
+    } else {
+        await displayNextQuestion();
+    }
+}
+
+// ------------------------ ОБРАБОТКА РЕШЕНИЯ БЗ ------------------------
+
+// Определение напитка
+async function determineDrink() {
+    try {
+        if (consoleLOG)
+            console.log("Начинаем определение напитка...");
+
+        // Получаем все предпочтения пользователя
+        const preferences = await fetchUserPreferences();
+        if (preferences.length === 0) {
+            return handleNoPreferences();
+        }
+
+        // Ищем подходящий ответ
+        const suitableDrinks = await findSuitableDrinks(preferences);
+        displayDrinkResults(suitableDrinks);
+
+    } catch (error) {
+        handleDrinkDeterminationError(error);
+    }
+}
+
+// Получение предпочтений пользователя с весами
+async function fetchUserPreferences() {
+    const preferences = [];
+    await processPreferences(preferences);
+    logPreferencesCount(preferences.length);
+    return preferences;
+}
+
+// Обработка предпочтений
+function processPreferences(preferences) {
+    return new Promise((resolve) => {
+        session.query('preference(Name, Weight).');
+        session.answer(createAnswerHandler(preferences, resolve));
+    });
+}
+
+// Создание обработчика ответов
+function createAnswerHandler(preferences, resolve) {
+    return function handleAnswer(answer) {
+        if (answer === false) {
+            resolve();
+            return;
+        }
+
+        const preference = extractPreference(answer);
+        if (preference) {
+            preferences.push(preference);
+            logPreference(preference);
+        }
+
+        session.answer(handleAnswer);
+    };
+}
+
+// Извлечение данных предпочтения
+function extractPreference(answer) {
+    if (!answer?.links) return null;
+
+    const name = extractPreferenceName(answer);
+    const weight = extractPreferenceWeight(answer);
+
+    return {
+        name,
+        weight,
+        formattedName: formatPreferenceName(name)
+    };
+}
+
+// Извлечение названия предпочтения
+function extractPreferenceName(answer) {
+    return answer.links.Name?.id || 'unknown';
+}
+
+// Извлечение веса предпочтения
+function extractPreferenceWeight(answer) {
+    return answer.links.Weight?.value ?? answer.links.Weight?.id ?? 0;
+}
+
+// Логирование предпочтения
+function logPreference(preference) {
+    console.log(`- Найдено: ${preference.formattedName} (вес: ${preference.weight})`);
+}
+
+// Логирование общего количества
+function logPreferencesCount(count) {
+    console.log(`Всего предпочтений: ${count}`);
+}
+
+// Главная функция
+async function findSuitableDrinks(preferences) {
+    try {
+        return calculateDrinkMatches(preferences, drinksData);
+    } catch (error) {
+        handleCalculationError(error);
+        return [];
+    }
+}
+
+// Расчет соответствия напитков
+function calculateDrinkMatches(userPreferences, drinksData) {
+    const results = [];
+
+    for (const [drinkName, drinkInfo] of Object.entries(drinksData)) {
+        const matchScore = calculateDrinkScore(drinkInfo, userPreferences);
+        if (matchScore > 0) {
+            results.push(createDrinkResult(drinkName, matchScore));
+        }
+    }
+
+    return sortResults(results);
+}
+
+// Расчет score для одного напитка
+function calculateDrinkScore(drinkInfo, userPreferences) {
+    if (!drinkInfo?.conditions) return 0;
+
+    let totalScore = 0;
+    let maxScore = 0;
+
+    for (const condition of drinkInfo.conditions) {
+        const {currentScore, currentMax} = processCondition(condition, userPreferences);
+        totalScore += currentScore;
+        maxScore += currentMax;
+    }
+
+    return maxScore > 0 ? totalScore / maxScore : 0;
+}
+
+// Обработка одного условия
+function processCondition(condition, userPreferences) {
+    const condName = condition.name;
+    const condWeight = Number(condition.value) || 0;
+    let currentScore = 0;
+
+    const userPref = userPreferences.find(p => p.name === condName);
+    if (userPref) {
+        currentScore = condWeight * (Number(userPref.weight) || 0);
+    }
+
+    return {
+        currentScore,
+        currentMax: condWeight
+    };
+}
+
+// Создание объекта результата
+function createDrinkResult(name, score) {
+    return {
+        name,
+        value: parseFloat(score.toFixed(4))
+    };
+}
+
+// Сортировка результатов
+function sortResults(results) {
+    return results.sort((a, b) => b.value - a.value);
+}
+
+// Обработка ошибок
+function handleCalculationError(error) {
+    console.error("Ошибка расчета:", error);
+}
+
+// ---------------------- Получение данных о напитках ----------------------------------------
+async function getDrinksData() {
+    const rules = session.rules['drink/1'] || [];
+    return await parseDrinkRules(rules);
+}
+
+// Парсинг всех правил напитков
+function parseDrinkRules(rules) {
+    return rules.reduce((result, rule) => {
+        const drink = parseDrinkRule(rule);
+        return drink ? {...result, [drink.name]: drink.data} : result;
+    }, {});
+}
+
+// Парсинг одного правила напитка
+function parseDrinkRule(rule) {
+    if (!isValidDrinkRule(rule)) return null;
+
+    const name = rule.head.args[0].id;
+    const conditions = parseConditions(rule.body);
+
+    return {name, data: {conditions, count: conditions.length}};
+}
+
+// Проверка валидности правила
+function isValidDrinkRule(rule) {
+    const head = rule.head;
+    return head && head.id === 'drink' && head.args && head.args.length === 1;
+}
+
+// Парсинг условий напитка
+function parseConditions(body) {
+    const conditions = [];
+    let current = body;
+
+    while (current) {
+        const [first, rest] = current.id === ',' ?
+            [current.args[0], current.args[1]] :
+            [current, null];
+
+        addCondition(first, conditions);
+        current = rest;
+    }
+
+    return conditions;
+}
+
+// Добавление условия
+function addCondition(condition, conditions) {
+    if (condition.id === 'preference' && condition.args?.length === 2) {
+        conditions.push({
+            name: condition.args[0].id,
+            value: parseNumber(condition.args[1])
+        });
+    }
+}
+
+// -------------------------  ОБЩЕЕ  --------------------------------------
+// Парсинг числовых значений из Prolog-термов
+function parseNumber(term) {
+    if (term.value !== undefined) return term.value;
+    if (!isNaN(term.id)) return parseFloat(term.id);
+    return 0; // Значение по умолчанию
+}
+
+// Обработка отсутствия предпочтений
+function handleNoPreferences() {
+    console.log("Нет предпочтений для определения напитка");
+    showNoDrinkFound();
+}
+
+// Отображение результатов
+function displayDrinkResults(drinks) {
+    if (drinks.length > 0) {
+        showAllDrinksResult(drinks);
+    } else {
+        showNoDrinkFound();
+    }
+}
+
+// ------------------------ DEBUG ------------------------
+// Корректная версия функции для вывода всех предпочтений
+function showAllPreferences() {
+    console.log("Получение всех предпочтений...");
+    const uiContainer = document.getElementById('preferences-display');
+
+    // Очищаем контейнер перед выводом
+    if (uiContainer) uiContainer.innerHTML = '<p>Загрузка предпочтений...</p>';
+
+    // Создаем новый запрос
+    session.query('preference(Name, Weight).');
+
+    // Обработчик ответов
+    const processAnswer = (answer) => {
+        if (answer === false) {
+            // Все ответы получены
+            console.log("Все предпочтения получены");
+            if (uiContainer) {
+                if (uiContainer.children.length === 1 &&
+                    uiContainer.firstChild.textContent === 'Загрузка предпочтений...') {
+                    uiContainer.innerHTML = '<p>Нет добавленных предпочтений</p>';
+                }
+            }
+            return;
+        }
+
+        if (answer && answer.links) {
+            // Извлекаем данные из ответа
+            const prefName = answer.links.Name?.id || 'unknown';
+            const prefWeight = answer.links.Weight?.value ?? answer.links.Weight?.id ?? 'unknown';
+            const formattedName = formatPreferenceName(prefName);
+
+            // Вывод в консоль
+            console.log(`- ${formattedName}: вес = ${prefWeight}`);
+
+            // Вывод в интерфейс
+            if (uiContainer) {
+                // Удаляем сообщение о загрузке если оно есть
+                if (uiContainer.children.length === 1 &&
+                    uiContainer.firstChild.textContent === 'Загрузка предпочтений...') {
+                    uiContainer.innerHTML = '';
+                }
+
+                const prefElement = document.createElement('div');
+                prefElement.className = 'preference-item';
+                prefElement.innerHTML = `
+                    <span class="pref-name">${formattedName}</span>
+                    <span class="pref-weight">Вес: ${prefWeight}</span>
+                `;
+                uiContainer.appendChild(prefElement);
+            }
+        }
+
+        // Продолжаем получать следующие ответы
+        session.answer(processAnswer);
+    };
+
+    // Начинаем обработку
+    session.answer(processAnswer);
+}
+/*
+function addDrink() {
+    const container = document.getElementById('question-container');
+    container.innerHTML = `
+        <div class="add-drink-form">
+            <h3>Добавление нового напитка</h3>
+            <div>
+                <label>Название напитка (латиница без пробелов):</label>
+                <input type="text" id="drink-name" class="form-input">
+            </div>
+            <div id="preferences-list">
+                <div class="preference-item">
+                    <input type="text" placeholder="Предпочтение (напр. hot)" class="pref-name">
+                    <input type="number" min="0" max="1" step="0.1" placeholder="Вес" class="pref-weight">
+                </div>
+            </div>
+            <button class="btn" onclick="addPreferenceField()">+ Добавить предпочтение</button>
+            <button class="btn" onclick="saveNewDrink()">Сохранить</button>
+            <button class="btn" onclick="resetSystem()">Отмена</button>
+        </div>
+    `;
+}
+
+function addPreferenceField() {
+    const list = document.getElementById('preferences-list');
+    const newItem = document.createElement('div');
+    newItem.className = 'preference-item';
+    newItem.innerHTML = `
+        <input type="text" placeholder="Предпочтение (напр. hot)" class="pref-name">
+        <input type="number" min="0" max="1" step="0.1" placeholder="Вес" class="pref-weight">
+    `;
+    list.appendChild(newItem);
+}
+
+async function saveNewDrink() {
+    try {
+        const drinkName = document.getElementById('drink-name').value.trim();
+        const prefs = Array.from(document.querySelectorAll('.preference-item')).map(item => ({
+            name: item.querySelector('.pref-name').value.trim(),
+            weight: parseFloat(item.querySelector('.pref-weight').value)
+        })).filter(p => p.name && !isNaN(p.weight));
+
+        if (!drinkName || !/^[a-z_]+$/.test(drinkName)) {
+            throw new Error('Некорректное название напитка! Используйте латинские буквы и подчеркивания');
+        }
+
+        if (prefs.length === 0) {
+            throw new Error('Добавьте хотя бы одно предпочтение!');
+        }
+
+        // Формируем правило Prolog
+        const conditions = prefs.map(p => `preference(${p.name}, ${p.weight})`).join(',\n    ');
+        const newRule = `drink(${drinkName}) :-\n    ${conditions}.`;
+
+        // Добавляем правило в сессию
+        await new Promise(resolve => {
+            session.query(`assertz(${newRule})`);
+            session.answer(resolve);
+        });
+
+        alert('Напиток успешно добавлен!');
+        resetSystem();
+    } catch (error) {
+        showError(error.message);
+    }
+}*/

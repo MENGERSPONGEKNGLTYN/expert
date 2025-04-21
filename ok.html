@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Экспертная система</title>
+    <script src="https://cdn.jsdelivr.net/npm/tau-prolog@0.3.1/modules/core.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<h1>Экспертная система: Выбор напитка</h1>
+<div id="error-container" class="error"></div>
+<div id="question-container" class="question"></div>
+<div id="result-container" class="result hidden"></div>
+
+<template id="question-template">
+    <h3 class="question-text"></h3>
+    <div class="options"></div>
+    <button class="btn" onclick="submitAnswers()">Далее</button>
+</template>
+
+<script src="UI.js"></script>
+<script src="system.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', initSystem)
+</script>
+
+<!--<button onclick="addDrink()">Добавить напиток</button>-->
+<button onclick="showAllPreferences()">Показать все предпочтения</button>
+<div id="preferences-display" style="margin-top: 20px; border: 1px solid #eee; padding: 10px;">
+</div>
+
+</body>
+</html>
