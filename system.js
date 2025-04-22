@@ -484,77 +484,211 @@ function showAllPreferences() {
     session.answer(processAnswer);
 }
 
+
+// ---------------------- Добавление нового материала ----------------------------------------
+
 function addDrink() {
     document.getElementById('result-container').style.display = 'none';
     document.getElementById('result-container').innerHTML = '';
     const container = document.getElementById('question-container');
     container.style.display = 'block';
     document.getElementById('action-header').textContent = 'Добавление нового материала';
-    container.innerHTML = `
-        <div class="add-drink-form">
-            <div>
-                <label>Название материала (латиница без пробелов):</label>
-                <input type="text" id="drink-name" class="form-input">
-            </div>
-            // NOTE мб функция, которая в латиницу сама переводит 
-            <div>
-                <label>Название материала (кириллица):</label>
-                <input type="text" id="drink-name" class="form-input">
-            </div>
-            // Сюда + 3 чек бокса (добавляем в пол/потолок/стены)
-            <div id="preferences-list">
-                <div class="preference-item">
-                    <input type="text" placeholder="Предпочтение (напр. hot)" class="pref-name">
-                    <input type="number" min="0" max="1" step="0.1" placeholder="Вес" class="pref-weight">
+
+    // Загружаем все возможные предпочтения из Prolog
+    fetchAllPreferences().then(preferences => {
+        container.innerHTML = `
+            <div class="add-drink-form">
+                <div>
+                    <label>Название материала (кириллица):</label>
+                    <input type="text" id="drink-name-cyrillic" class="form-input" placeholder="Например: Гипсокартон">
+                </div>
+                
+                <div class="surface-type">
+                    <label>Тип поверхности:</label>
+                    <div>
+                        <input type="radio" id="wall-type" name="surface-type" value="steni" checked>
+                        <label for="wall-type">Стены</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="floor-type" name="surface-type" value="pol">
+                        <label for="floor-type">Пол</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="ceiling-type" name="surface-type" value="potolok">
+                        <label for="ceiling-type">Потолок</label>
+                    </div>
+                </div>
+                
+                <div id="preferences-list">
+                    <div class="preference-row">
+                        <select class="pref-name">
+                            <option value="" disabled selected>Выберите предпочтение</option>
+                            ${preferences.map(p => `<option value="${p}">${formatPreferenceName(p)}</option>`).join('')}
+                        </select>
+                        <input type="number" min="0" max="1" step="0.1" value="0.5" class="pref-weight">
+                        <button class="btn small" onclick="removePreferenceField(this)">×</button>
+                    </div>
+                </div>
+                
+                <button class="btn" onclick="addPreferenceField()">+ Добавить предпочтение</button>
+                <div class="form-buttons">
+                    <button class="btn" onclick="saveNewDrink()">Сохранить</button>
+                    <button class="btn" onclick="resetSystem()">Отмена</button>
                 </div>
             </div>
-            <button class="btn" onclick="addPreferenceField()">+ Добавить предпочтение</button>
-            <button class="btn" onclick="saveNewDrink()">Сохранить</button>
-            <button class="btn" onclick="resetSystem()">Отмена</button>
-        </div>
-    `;
+        `;
+    });
 }
 
+// Функция для получения всех предпочтений из Prolog
+async function fetchAllPreferences() {
+    const preferences = new Set();
+
+    // 1. Сначала получаем все drink/1 правила из сессии
+    const drinkRules = session.rules['drink/1'] || [];
+
+    // 2. Для каждого правила извлекаем предпочтения
+    for (const rule of drinkRules) {
+        if (rule.head && rule.head.id === 'drink' && rule.body) {
+            const conditions = parseConditionsLocal(rule.body);
+            conditions.forEach(cond => {
+                if (cond.name) preferences.add(cond.name);
+            });
+        }
+    }
+
+    return Array.from(preferences);
+}
+
+// Оптимизированная функция parseConditions
+function parseConditionsLocal(body) {
+    const conditions = [];
+    let current = body;
+
+    while (current) {
+        if (current.id === ',') {
+            // Обработка списка условий (A, B, C)
+            const head = current.args[0];
+            if (head.id === 'preference' && head.args?.length === 2) {
+                conditions.push({
+                    name: head.args[0].id,
+                    value: parseFloat(head.args[1].id) || 0
+                });
+            }
+            current = current.args[1]; // Переходим к хвосту
+        } else if (current.id === 'preference' && current.args?.length === 2) {
+            // Одиночное условие
+            conditions.push({
+                name: current.args[0].id,
+                value: parseFloat(current.args[1].id) || 0
+            });
+            break; // Выходим из цикла
+        } else {
+            break; // Неизвестная структура
+        }
+    }
+
+    return conditions;
+}
+
+// Добавление нового поля предпочтения
 function addPreferenceField() {
     const list = document.getElementById('preferences-list');
-    const newItem = document.createElement('div');
-    newItem.className = 'preference-item';
-    newItem.innerHTML = `
-        <input type="text" placeholder="Предпочтение (напр. hot)" class="pref-name">
-        <input type="number" min="0" max="1" step="0.1" placeholder="Вес" class="pref-weight">
+    const newRow = document.createElement('div');
+    newRow.className = 'preference-row';
+    newRow.innerHTML = `
+        <select class="pref-name">
+            <option value="" disabled selected>Выберите предпочтение</option>
+            ${Array.from(document.querySelectorAll('.pref-name option'))
+                .filter(opt => opt.value)
+                .map(opt => opt.outerHTML)
+                .join('')}
+        </select>
+        <input type="number" min="0" max="1" step="0.1" value="0.5" class="pref-weight">
+        <button class="btn small" onclick="removePreferenceField(this)">×</button>
     `;
-    list.appendChild(newItem);
+    list.appendChild(newRow);
 }
 
+// Удаление поля предпочтения
+function removePreferenceField(button) {
+    button.parentElement.remove();
+}
+
+// Сохранение нового материала
 async function saveNewDrink() {
     try {
-        const drinkName = document.getElementById('drink-name').value.trim();
-        const prefs = Array.from(document.querySelectorAll('.preference-item')).map(item => ({
-            name: item.querySelector('.pref-name').value.trim(),
-            weight: parseFloat(item.querySelector('.pref-weight').value)
-        })).filter(p => p.name && !isNaN(p.weight));
+        // Получаем данные из формы
+        const cyrillicName = document.getElementById('drink-name-cyrillic').value.trim();
+        const surfaceType = document.querySelector('input[name="surface-type"]:checked').value;
 
-        if (!drinkName || !/^[a-z_]+$/.test(drinkName)) {
-            throw new Error('<p>Некорректное название напитка!<br>Используйте латинские буквы и подчеркивания</p>');
+        // Транслитерация кириллицы в латиницу
+        const latinName = transliterate(cyrillicName) + '_' + surfaceType;
+
+        // Получаем все предпочтения
+        const preferences = Array.from(document.querySelectorAll('.preference-row'))
+            .map(row => ({
+                name: row.querySelector('.pref-name').value,
+                weight: parseFloat(row.querySelector('.pref-weight').value)
+            }))
+            .filter(p => p.name && !isNaN(p.weight));
+
+        // Валидация
+        if (!cyrillicName) {
+            throw new Error('Введите название материала!');
         }
 
-        if (prefs.length === 0) {
+        if (preferences.length === 0) {
             throw new Error('Добавьте хотя бы одно предпочтение!');
         }
 
-        // Формируем правило Prolog
-        const conditions = prefs.map(p => `preference(${p.name}, ${p.weight})`).join(',\n    ');
-        const newRule = `drink(${drinkName}) :-\n    ${conditions}.`;
+        // Формируем словарь с данными
+        const materialData = {
+            drink: latinName,
+            preferences: preferences.map(p => [p.name, p.weight])
+        };
 
-        // Добавляем правило в сессию
-        await new Promise(resolve => {
-            session.query(`assertz(${newRule})`);
-            session.answer(resolve);
+        // Отправляем данные на сервер Node.js
+        const response = await fetch('http://localhost:4444/save-material', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(materialData)
         });
 
-        alert('Напиток успешно добавлен!');
-        resetSystem();
+        if (!response.ok) {
+            throw new Error('Ошибка при сохранении материала');
+        }
+
+        const result = await response.json();
+        if (result.success) {
+            alert('Материал успешно сохранен!');
+            resetSystem();
+        } else {
+            throw new Error(result.message || 'Ошибка при сохранении');
+        }
+
     } catch (error) {
         showError(error.message);
     }
+}
+
+// Функция транслитерации кириллицы в латиницу
+function transliterate(text) {
+    const cyrillicMap = {
+        'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo', 'ж': 'zh',
+        'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o',
+        'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u', 'ф': 'f', 'х': 'h', 'ц': 'ts',
+        'ч': 'ch', 'ш': 'sh', 'щ': 'sch', 'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu',
+        'я': 'ya'
+    };
+
+    return text.toLowerCase()
+        .split('')
+        .map(char => cyrillicMap[char] || char)
+        .join('')
+        .replace(/[^a-z0-9]/g, '_')
+        .replace(/_+/g, '_')
+        .replace(/^_|_$/g, '');
 }

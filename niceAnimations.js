@@ -1,6 +1,6 @@
 // Показываем прелоадер при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
-    // Имитируем загрузку (в реальном проекте уберите setTimeout)
+    // Имитируем загрузку
     setTimeout(function() {
         // Скрываем прелоадер
         document.getElementById('preloader').style.opacity = '0';
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Инициализируем систему
         initSystem();
-    }, 0); // В реальном проекте уберите setTimeout и вызывайте скрытие прелоадера после реальной загрузки
+    }, 0);
 });
 
 

@@ -260,6 +260,10 @@ drink(kovrolin_pol) :-
     preference('slojnost_podgotovki', 0.9),
     preference('ustoichivost_meh_povrejdeniyam', 0.3).
 
+drink(nemnogo_ponosa_potolok) :-
+    preference('slojnost_podgotovki_base', 0.1),
+    preference('myagkost', 1).
+
 %----------------------------------------------------------------
 % Вопросы и варианты ответов
 % Общие вопросы для всех поверхностей
