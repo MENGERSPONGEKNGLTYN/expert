@@ -6,30 +6,58 @@
     <title>Экспертная система</title>
     <script src="https://cdn.jsdelivr.net/npm/tau-prolog@0.3.1/modules/core.min.js"></script>
     <link rel="stylesheet" href="style.css">
+    <style>
+
+    </style>
 </head>
 <body>
-<h1>Экспертная система: Выбор материалов для ремонта</h1>
-<div id="error-container" class="error"></div>
-<div id="question-container" class="question"></div>
-<div id="result-container" class="result hidden"></div>
 
-<template id="question-template">
-    <h3 class="question-text"></h3>
-    <div class="options"></div>
-    <button class="btn" onclick="submitAnswers()">Далее</button>
-</template>
+<!-- Прелоадер -->
+<div class="preloader" id="preloader">
+    <div class="loader">
+        <div class="loader-circle"></div>
+        <div class="loader-circle"></div>
+        <div class="loader-circle"></div>
+        <div class="loader-circle"></div>
+    </div>
+    <h1 class="preloader-logo">Добро пожаловать!</h1>
+</div>
+
+<!-- Основное содержимое -->
+<div id="content" class="hidden">
+    <div id="btn-menu-container" class="question">
+        <button class="btn" id="showPreferencesBtn">Показать все предпочтения</button>
+        <button class="btn" id="restartBtn" onclick="resetSystem()">Начать сначала</button>
+        <button class="btn" id="addMaterialBtn" onclick="addDrink()">Добавить материал</button>
+    </div>
+    <h1>Экспертная система</h1>
+    <h2 id="action-header">Выбор материалов для ремонта</h2>
+    <div id="error-container" class="modal">
+        <div id="error-modal" class="modal-content error">
+        </div>
+    </div>
+    <!-- <div id="error-container" class="question error"></div>-->
+    <div id="result-container" class="result"></div>
+
+    <div id="question-container" class="question"></div>
+
+    <template id="question-template">
+        <h3 class="question-text"></h3>
+        <div class="options"></div>
+        <button class="btn" id="next-quest-btn" onclick="submitAnswers()">Далее</button>
+    </template>
+
+    <!-- Модальное окно для предпочтений -->
+    <div id="preferencesModal" class="modal">
+        <div class="modal-content">
+            <h2>Добавленные предпочтения</h2>
+            <div class="table" id="preferences-display"></div>
+        </div>
+    </div>
+</div>
 
 <script src="UI.js"></script>
 <script src="system.js"></script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', initSystem)
-</script>
-
-<!--<button onclick="addDrink()">Добавить напиток</button>-->
-<button class="btn" onclick="showAllPreferences()">Показать все предпочтения</button>
-<div class="table" id="preferences-display" style="margin-top: 20px; border: 1px solid #eee; padding: 10px;">
-</div>
-
+<script src="niceAnimations.js"></script>
 </body>
 </html>

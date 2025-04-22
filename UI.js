@@ -3,27 +3,29 @@ let nameMap = {}
 // --------------------------- ВЫВОД ДЛЯ ПОЛЬЗОВАТЕЛЯ ---------------------------
 // Показ сообщения, если материал не найден
 function showNoDrinkFound() {
+    document.getElementById('question-container').innerHTML = 'екомендуемые материалы';
+    document.getElementById('question-container').style.display = 'none';
     const container = document.getElementById('result-container');
-    container.innerHTML = `
-                <p>Не удалось определить подходящий напиток на основе ваших предпочтений.</p>
-                <button class="btn" onclick="resetSystem()">Попробовать снова</button>
-            `;
-    container.classList.remove('hidden');
+    container.innerHTML = `<div class="question"><p>Не удалось определить подходящие материалы на основе ваших предпочтений.</p></div>`;
+    container.style.display = 'block';
 }
 
 // Показ результатов, если материал найден
 function showAllDrinksResult(drinks) {
+    document.getElementById('action-header').textContent = 'Рекомендуемые материалы';
     document.getElementById('question-container').innerHTML = '';
+    document.getElementById('question-container').style.display = 'none';
     const resultContainer = document.getElementById('result-container');
     resultContainer.style.display = 'block';
 
-    let drinksHtml = '<p>Вероятности соответствия вашим предпочтениям:</p><ul>';
-
+    let drinksHtmlPotolok = '<div class="question"><p>Вероятности соответствия вашим предпочтениям (потолок):</p><ul>';
+    let drinksHtmlPol = '<div class="question"><p>Вероятности соответствия вашим предпочтениям (пол):</p><ul>';
+    let drinksHtmlSteni = '<div class="question"><p>Вероятности соответствия вашим предпочтениям (стены):</p><ul>';
     drinks.forEach(drink => {
         const percentage = Math.round(drink.value * 100);
         const isPerfectMatch = drink.value >= 0.99;
-
-        drinksHtml += `
+        if (drink.name.endsWith('_potolok')) {
+            drinksHtmlPotolok += `
             <li>
                 <strong>${formatDrinkName(drink.name)}</strong>: 
                 ${percentage}%
@@ -32,23 +34,44 @@ function showAllDrinksResult(drinks) {
                     <div class="progress" style="width: ${percentage}%"></div>
                 </div>
             </li>`;
+        }
+        if (drink.name.endsWith('_pol')) {
+            drinksHtmlPol += `
+            <li>
+                <strong>${formatDrinkName(drink.name)}</strong>: 
+                ${percentage}%
+                ${isPerfectMatch ? ' (полное соответствие)' : ''}
+                <div class="progress-bar">
+                    <div class="progress" style="width: ${percentage}%"></div>
+                </div>
+            </li>`;
+        }
+        if (drink.name.endsWith('_steni')) {
+            drinksHtmlSteni += `
+            <li>
+                <strong>${formatDrinkName(drink.name)}</strong>: 
+                ${percentage}%
+                ${isPerfectMatch ? ' (полное соответствие)' : ''}
+                <div class="progress-bar">
+                    <div class="progress" style="width: ${percentage}%"></div>
+                </div>
+            </li>`;
+        }
     });
 
-    drinksHtml += `</ul>`;
+    drinksHtmlPotolok += `</ul></div>` + drinksHtmlSteni + `</ul></div>` + drinksHtmlPol + `</ul></div>`;
 
-    resultContainer.innerHTML = `<h3>Рекомендуемые напитки:</h3>
-                             ${drinksHtml}
-                             <button class="btn" onclick="resetSystem()">Начать заново</button>`;
+    resultContainer.innerHTML = `${drinksHtmlPotolok}`;
 }
 
 // Показ ошибки
 function showError(message) {
     const container = document.getElementById('error-container');
-    container.textContent = message;
+    document.getElementById('error-modal').innerHTML = message;
     container.style.display = 'block';
     setTimeout(() => {
         container.style.display = 'none';
-    }, 3000);
+    }, 2000);
 }
 
 // 6. Обработка ошибок при вводе ответа
@@ -82,6 +105,7 @@ async function displayNextQuestion() {
         const currentQuestion = questionsData[currentQuestionIndex];
         renderQuestion(currentQuestion.label, currentQuestion.options);
     } else {
+        //document.getElementById('next-quest-btn.btn').classList.add('hidden');
         // Вопросы закончились - определяем результат
         determineDrink();
     }
@@ -93,7 +117,7 @@ function renderQuestion(questionText, options) {
     const template = document.getElementById('question-template');
 
     const questionClone = template.content.cloneNode(true);
-    questionClone.querySelector('.question-text').textContent = questionText;
+    questionClone.querySelector('.question-text').innerHTML = questionText;
     const optionsContainer = questionClone.querySelector('.options');
 
     parseOptions(options).forEach(option => {
@@ -143,17 +167,34 @@ function formatPreferenceName(name) {
 }
 
 function formatDrinkName(name) {
-    /*const nameMap = {
-        'tea': 'Чай',
-        'coffee': 'Кофе',
-        'hot_chocolate': 'Горячий шоколад',
-        'orange_juice': 'Апельсиновый сок',
-        'water': 'Вода',
-        'lemonade': 'Лимонад',
-        'iced_tea': 'Холодный чай',
-        'milk_shake': 'Молочный коктейль'
+    const nameMap = {
+        // Потолок
+        'pobelka_potolok': 'Побелка',
+        'shpaklevka_pokraska_potolok': ':)',
+        'potolochnye_plitki_potolok': 'Потолочные плитки',
+        'gipsokarton_potolok': 'Гипсокартон',
+        'natyazhnoi_potolok': 'Натяжной потолок',
+
+        // Стены
+        'oboi_bumazhnye_steni': 'Обои бумажные',
+        'oboi_vinilovye_steni': 'Обои виниловые',
+        'dekorativnaya_shtukaturka_steni': 'Декоративная штукатурка',
+        'pokraska_steni': 'Покраска стен',
+        'keramicheskaya_plitka_steni': 'Керамическая плитка',
+        'paneli_pvh_mdf_steni': ':)',
+        'gipsokarton_steni': 'Гипсокартон',
+
+        // Полы
+        'laminat_pol': 'Ламинат',
+        'parket_pol': 'Паркет',
+        'linoleum_pol': 'Линолеум',
+        'plitka_keramogranit_pol': 'Плитка керамогранит',
+        'nalivnoy_pol': 'Наливной пол',
+        'probkovoe_pokrytie_pol': 'Пробковое покрытие',
+        'kovrolin_pol': 'Ковролин'
+
     };
-    return nameMap[name] || name;*/
+    return nameMap[name] || name;
     // NOTE думаю, лучше это не использовать, но добавлять алиасы в прологе для напитков тоже как-то не хочется
-    return name;
+    //return name;
 }

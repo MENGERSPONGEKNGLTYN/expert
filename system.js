@@ -29,8 +29,13 @@ function resetSystem() {
     session.query('retractall(preference(_, _)).');
     session.answer(function () {
         // Очищаем результаты
+        document.getElementById('action-header').textContent = 'Выбор материалов для ремонта';
+        document.getElementById('result-container').style.display = 'none';
         document.getElementById('result-container').innerHTML = '';
+
+        document.getElementById('question-container').style.display = 'block';
         document.getElementById('preferences-display').innerHTML = '';
+
         // Начинаем заново
         currentQuestionIndex = 0;
         displayNextQuestion();
@@ -123,7 +128,6 @@ function getSelectedAnswers() {
 }
 
 
-
 // Валидация ответов
 function validateAnswers(answers) {
     if (answers.length === 0) {
@@ -141,7 +145,7 @@ async function addNewPreferences(answers) {
                 session.answer(() => {
                     console.log(`Добавлено: ${answer.option} (${answer.weight})`);
                     resolve();
-                    });
+                });
             });
         });
         await Promise.all(preferencePromises);
@@ -455,7 +459,7 @@ function showAllPreferences() {
             console.log(`- ${formattedName}: вес = ${prefWeight}`);
 
             // Вывод в интерфейс
-            if (uiContainer) {
+            if (uiContainer && prefWeight !== 0) {
                 // Удаляем сообщение о загрузке если оно есть
                 if (uiContainer.children.length === 1 &&
                     uiContainer.firstChild.textContent === 'Загрузка предпочтений...') {
@@ -466,7 +470,7 @@ function showAllPreferences() {
                 prefElement.className = 'preference-item';
                 prefElement.innerHTML = `
                     <span class="pref-name">${formattedName}</span>
-                    <span class="pref-weight">Вес: ${prefWeight}</span>
+                    <span class="pref-weight">${prefWeight * 10} / 10</span>
                 `;
                 uiContainer.appendChild(prefElement);
             }
@@ -479,16 +483,25 @@ function showAllPreferences() {
     // Начинаем обработку
     session.answer(processAnswer);
 }
-/*
+
 function addDrink() {
+    document.getElementById('result-container').style.display = 'none';
+    document.getElementById('result-container').innerHTML = '';
     const container = document.getElementById('question-container');
+    container.style.display = 'block';
+    document.getElementById('action-header').textContent = 'Добавление нового материала';
     container.innerHTML = `
         <div class="add-drink-form">
-            <h3>Добавление нового напитка</h3>
             <div>
-                <label>Название напитка (латиница без пробелов):</label>
+                <label>Название материала (латиница без пробелов):</label>
                 <input type="text" id="drink-name" class="form-input">
             </div>
+            // NOTE мб функция, которая в латиницу сама переводит 
+            <div>
+                <label>Название материала (кириллица):</label>
+                <input type="text" id="drink-name" class="form-input">
+            </div>
+            // Сюда + 3 чек бокса (добавляем в пол/потолок/стены)
             <div id="preferences-list">
                 <div class="preference-item">
                     <input type="text" placeholder="Предпочтение (напр. hot)" class="pref-name">
@@ -522,7 +535,7 @@ async function saveNewDrink() {
         })).filter(p => p.name && !isNaN(p.weight));
 
         if (!drinkName || !/^[a-z_]+$/.test(drinkName)) {
-            throw new Error('Некорректное название напитка! Используйте латинские буквы и подчеркивания');
+            throw new Error('<p>Некорректное название напитка!<br>Используйте латинские буквы и подчеркивания</p>');
         }
 
         if (prefs.length === 0) {
@@ -544,4 +557,4 @@ async function saveNewDrink() {
     } catch (error) {
         showError(error.message);
     }
-}*/
+}
