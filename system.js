@@ -24,7 +24,7 @@ async function initSystem() {
 }
 
 // Сброс введённых данных
-async function resetSystem() {
+function resetSystem() {
     // Очищаем базу предпочтений
     session.query('retractall(preference(_, _)).');
     session.answer(async function () {
@@ -38,9 +38,8 @@ async function resetSystem() {
 
         // Начинаем заново
         currentQuestionIndex = 0;
-        session.close();
-        await initSystem();
     });
+    initSystem()
 }
 
 // ------------------------ ВЫГРУЗКА ВОПРОСОВ ДЛЯ ПОЛЬЗОВАТЕЛЯ ------------------------

@@ -260,16 +260,13 @@ material(kovrolin_pol) :-
     preference('slojnost_podgotovki', 0.9),
     preference('ustoichivost_meh_povrejdeniyam', 0.3).
 
-material(nemnogo_ponosa_potolok) :-
-    preference('slojnost_podgotovki_base', 0.1),
-    preference('myagkost', 1).
+material(ponos_2_pol) :-
+    preference('vlagostoikost', 0.5),
+    preference('temperature_stable', 0.5).
 
-material(uiuiuiui_potolok) :-
-    preference('ustoichivost_k_mech_povrejdeniyam', 0.3),
-    preference('myte', 1).
-
-material(abrakadabrah_steni) :-
-    preference('skrit_nerovnosti', 0.5).
+material(ponos_3_steni) :-
+    preference('srok_slujbi', 0.1),
+    preference('vlagostoikost', 1).
 
 
 
@@ -279,7 +276,7 @@ material(abrakadabrah_steni) :-
 question('Материал должен быть влагостойким?<br>(0 - не важно, 10 - очень важно)', [
     option('vlagostoikost', 'Влагостойкость')
 ]).
-/*
+
 question('Нужна термостойкость?<br>(0 - не важно, 10 - очень важно)', [
     option('temperature_stable', 'Термостойкость')
 ]).
@@ -347,7 +344,7 @@ question('Насколько важна звукоизоляция?<br>(0 - не
 question('Насколько важна мягкость покрытия?<br>(0 - не важно, 10 - очень важно)', [
     option('myagkost', 'Мягкость покрытия')
 ]).
-*/
+
 % Предикат для получения текущего вопроса
 current_question(Question, Options) :-
     question(Question, Options).

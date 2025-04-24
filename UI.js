@@ -103,7 +103,7 @@ function showError(message) {
 // Обработка ошибок при вводе ответа
 function handleSubmissionError(error) {
     console.error("Ошибка при отправке ответов:", error);
-    if (error.message === "Пожалуйста, выберите хотя бы один вариант") {
+    if (error.message === "Пожалуйста   , выберите хотя бы один вариант") {
         showError(error.message);
     } else {
         showError("Произошла ошибка при обработке ваших ответов");
@@ -122,11 +122,9 @@ async function displayNextQuestion() {
     // Если данные ещё не загружены
     if (questionsData.length === 0) {
         questionsData = await fetchAllQuestions();
+        getPreferencesName(questionsData);
     }
-    getPreferencesName(questionsData);
-    if (!materialsData) {
-        materialsData = await getMaterialsData();
-    }
+    materialsData = await getMaterialsData();
     // Проверяем, есть ли ещё вопросы
     if (currentQuestionIndex < questionsData.length) {
         const currentQuestion = questionsData[currentQuestionIndex];
