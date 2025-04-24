@@ -1,5 +1,5 @@
 % База знаний о материалах для ремонта
-drink(pobelka_potolok) :-
+material(pobelka_potolok) :-
     preference('vlagostoikost', 0),
     preference('temperature_stable', 0),
     preference('ecologichnost', 1),
@@ -12,7 +12,7 @@ drink(pobelka_potolok) :-
     preference('slojnost_podgotovki_base', 0.1),
     preference('ustoichivost_k_mech_povrejdeniyam', 0.1).
 
-drink(shpaklevka_pokraska_potolok) :-
+material(shpaklevka_pokraska_potolok) :-
     preference('vlagostoikost', 0.8),
     preference('temperature_stable', 1),
     preference('ecologichnost', 0.9),
@@ -25,7 +25,7 @@ drink(shpaklevka_pokraska_potolok) :-
     preference('slojnost_podgotovki_base', 0.2),
     preference('ustoichivost_k_mech_povrejdeniyam', 0.7).
 
-drink(potolochnye_plitki_potolok) :-
+material(potolochnye_plitki_potolok) :-
     preference('vlagostoikost', 1),
     preference('temperature_stable', 0.3),
     preference('ecologichnost', 0.4),
@@ -38,7 +38,7 @@ drink(potolochnye_plitki_potolok) :-
     preference('slojnost_podgotovki_base', 1),
     preference('ustoichivost_k_mech_povrejdeniyam', 0.4).
 
-drink(gipsokarton_potolok) :-
+material(gipsokarton_potolok) :-
     preference('vlagostoikost', 0.7),
     preference('temperature_stable', 1),
     preference('ecologichnost', 0.8),
@@ -51,7 +51,7 @@ drink(gipsokarton_potolok) :-
     preference('slojnost_podgotovki_base', 1),
     preference('ustoichivost_k_mech_povrejdeniyam', 0.9).
 
-drink(natyazhnoi_potolok) :-
+material(natyazhnoi_potolok) :-
     preference('vlagostoikost', 1),
     preference('temperature_stable', 0.2),
     preference('ecologichnost', 0.5),
@@ -64,7 +64,7 @@ drink(natyazhnoi_potolok) :-
     preference('slojnost_podgotovki_base', 1),
     preference('ustoichivost_k_mech_povrejdeniyam', 0.3).
 
-drink(oboi_bumazhnye_steni) :-
+material(oboi_bumazhnye_steni) :-
     preference('vlagostoikost', 0.1),
     preference('temperature_stable', 0.5),
     preference('ecologichnost', 1),
@@ -78,7 +78,7 @@ drink(oboi_bumazhnye_steni) :-
     preference('ustoichivost_meh_povrejdeniyam', 0.2),
     preference('myte', 0).
 
-drink(oboi_vinilovye_steni) :-
+material(oboi_vinilovye_steni) :-
     preference('vlagostoikost', 0.9),
     preference('temperature_stable', 0.8),
     preference('ecologichnost', 0.4),
@@ -92,7 +92,7 @@ drink(oboi_vinilovye_steni) :-
     preference('ustoichivost_meh_povrejdeniyam', 0.7),
     preference('myte', 0.9).
 
-drink(dekorativnaya_shtukaturka_steni) :-
+material(dekorativnaya_shtukaturka_steni) :-
     preference('vlagostoikost', 0.7),
     preference('temperature_stable', 0.9),
     preference('ecologichnost', 0.8),
@@ -106,7 +106,7 @@ drink(dekorativnaya_shtukaturka_steni) :-
     preference('ustoichivost_meh_povrejdeniyam', 0.8),
     preference('myte', 0.8).
 
-drink(pokraska_steni) :-
+material(pokraska_steni) :-
     preference('vlagostoikost', 0.8),
     preference('temperature_stable', 0.9),
     preference('ecologichnost', 0.9),
@@ -120,7 +120,7 @@ drink(pokraska_steni) :-
     preference('ustoichivost_meh_povrejdeniyam', 0.6),
     preference('myte', 0.7).
 
-drink(keramicheskaya_plitka_steni) :-
+material(keramicheskaya_plitka_steni) :-
     preference('vlagostoikost', 1),
     preference('temperature_stable', 1),
     preference('ecologichnost', 0.7),
@@ -134,7 +134,7 @@ drink(keramicheskaya_plitka_steni) :-
     preference('ustoichivost_meh_povrejdeniyam', 1),
     preference('myte', 1).
 
-drink(paneli_pvh_mdf_steni) :-
+material(paneli_pvh_mdf_steni) :-
     preference('vlagostoikost', 0.9),
     preference('temperature_stable', 0.7),
     preference('ecologichnost', 0.3),
@@ -148,7 +148,7 @@ drink(paneli_pvh_mdf_steni) :-
     preference('ustoichivost_meh_povrejdeniyam', 0.6),
     preference('myte', 0.9).
 
-drink(gipsokarton_steni) :-
+material(gipsokarton_steni) :-
     preference('vlagostoikost', 0.7),
     preference('temperature_stable', 0.9),
     preference('ecologichnost', 0.8),
@@ -162,7 +162,7 @@ drink(gipsokarton_steni) :-
     preference('ustoichivost_meh_povrejdeniyam', 0.7),
     preference('myte', 0.5).
 
-drink(laminat_pol) :-
+material(laminat_pol) :-
     preference('iznosostoikost', 0.7),
     preference('vlagostoikost', 0.4),
     preference('teploizolyaciya', 0.6),
@@ -176,7 +176,7 @@ drink(laminat_pol) :-
     preference('slojnost_podgotovki', 0.8),
     preference('ustoichivost_meh_povrejdeniyam', 0.6).
 
-drink(parket_pol) :-
+material(parket_pol) :-
     preference('iznosostoikost', 0.6),
     preference('vlagostoikost', 0.2),
     preference('teploizolyaciya', 0.8),
@@ -190,7 +190,7 @@ drink(parket_pol) :-
     preference('slojnost_podgotovki', 0.9),
     preference('ustoichivost_meh_povrejdeniyam', 0.4).
 
-drink(linoleum_pol) :-
+material(linoleum_pol) :-
     preference('iznosostoikost', 0.8),
     preference('vlagostoikost', 0.9),
     preference('teploizolyaciya', 0.7),
@@ -204,7 +204,7 @@ drink(linoleum_pol) :-
     preference('slojnost_podgotovki', 0.7),
     preference('ustoichivost_meh_povrejdeniyam', 0.7).
 
-drink(plitka_keramogranit_pol) :-
+material(plitka_keramogranit_pol) :-
     preference('iznosostoikost', 1),
     preference('vlagostoikost', 1),
     preference('teploizolyaciya', 0.2),
@@ -218,7 +218,7 @@ drink(plitka_keramogranit_pol) :-
     preference('slojnost_podgotovki', 0.6),
     preference('ustoichivost_meh_povrejdeniyam', 1).
 
-drink(nalivnoy_pol) :-
+material(nalivnoy_pol) :-
     preference('iznosostoikost', 0.9),
     preference('vlagostoikost', 1),
     preference('teploizolyaciya', 0.3),
@@ -232,7 +232,7 @@ drink(nalivnoy_pol) :-
     preference('slojnost_podgotovki', 1),
     preference('ustoichivost_meh_povrejdeniyam', 0.9).
 
-drink(probkovoe_pokrytie_pol) :-
+material(probkovoe_pokrytie_pol) :-
     preference('iznosostoikost', 0.5),
     preference('vlagostoikost', 0.3),
     preference('teploizolyaciya', 0.9),
@@ -246,7 +246,7 @@ drink(probkovoe_pokrytie_pol) :-
     preference('slojnost_podgotovki', 0.7),
     preference('ustoichivost_meh_povrejdeniyam', 0.5).
 
-drink(kovrolin_pol) :-
+material(kovrolin_pol) :-
     preference('iznosostoikost', 0.4),
     preference('vlagostoikost', 0.1),
     preference('teploizolyaciya', 0.8),
@@ -260,9 +260,18 @@ drink(kovrolin_pol) :-
     preference('slojnost_podgotovki', 0.9),
     preference('ustoichivost_meh_povrejdeniyam', 0.3).
 
-drink(nemnogo_ponosa_potolok) :-
+material(nemnogo_ponosa_potolok) :-
     preference('slojnost_podgotovki_base', 0.1),
     preference('myagkost', 1).
+
+material(uiuiuiui_potolok) :-
+    preference('ustoichivost_k_mech_povrejdeniyam', 0.3),
+    preference('myte', 1).
+
+material(abrakadabrah_steni) :-
+    preference('skrit_nerovnosti', 0.5).
+
+
 
 %----------------------------------------------------------------
 % Вопросы и варианты ответов
@@ -270,7 +279,7 @@ drink(nemnogo_ponosa_potolok) :-
 question('Материал должен быть влагостойким?<br>(0 - не важно, 10 - очень важно)', [
     option('vlagostoikost', 'Влагостойкость')
 ]).
-
+/*
 question('Нужна термостойкость?<br>(0 - не важно, 10 - очень важно)', [
     option('temperature_stable', 'Термостойкость')
 ]).
@@ -305,6 +314,14 @@ question('Оцените сложность подготовки поверхн�
     option('slojnost_podgotovki', 'Подготовка поверхности<br>(стены/пол)')
 ]).
 
+question('Нужно необычное дизайнерское решение?<br>(0 - не важно, 10 - максимально креативное решение)', [
+    option('varianti_dizaina', 'Варианты дизайна')
+]).
+
+question('Насколько важна возможность скрыть коммуникации?<br>(0 - не важно, 10 - нужна обязательно)', [
+    option('skrit_communications', 'Скрытие коммуникаций')
+]).
+
 % Специфические вопросы для стен
 question('Насколько важно скрыть неровности стен?<br>(0 - не важно, 10 - очень важно)', [
     option('skrit_nerovnosti', 'Скрытие неровностей стен')
@@ -330,10 +347,10 @@ question('Насколько важна звукоизоляция?<br>(0 - не
 question('Насколько важна мягкость покрытия?<br>(0 - не важно, 10 - очень важно)', [
     option('myagkost', 'Мягкость покрытия')
 ]).
-
+*/
 % Предикат для получения текущего вопроса
 current_question(Question, Options) :-
     question(Question, Options).
 
 % Предикат для получения всех напитков
-current_drink(Drink) :- drink(Drink).
+current_material(Material) :- material(Material).
