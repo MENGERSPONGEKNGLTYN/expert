@@ -268,6 +268,10 @@ material(uiuiuiui_potolok) :-
     preference('ustoichivost_k_mech_povrejdeniyam', 0.3),
     preference('myte', 1).
 
+material(abrakadabrah_steni) :-
+    preference('skrit_nerovnosti', 0.5).
+
+
 
 %----------------------------------------------------------------
 % Вопросы и варианты ответов
@@ -275,7 +279,7 @@ material(uiuiuiui_potolok) :-
 question('Материал должен быть влагостойким?<br>(0 - не важно, 10 - очень важно)', [
     option('vlagostoikost', 'Влагостойкость')
 ]).
-
+/*
 question('Нужна термостойкость?<br>(0 - не важно, 10 - очень важно)', [
     option('temperature_stable', 'Термостойкость')
 ]).
@@ -343,7 +347,7 @@ question('Насколько важна звукоизоляция?<br>(0 - не
 question('Насколько важна мягкость покрытия?<br>(0 - не важно, 10 - очень важно)', [
     option('myagkost', 'Мягкость покрытия')
 ]).
-
+*/
 % Предикат для получения текущего вопроса
 current_question(Question, Options) :-
     question(Question, Options).

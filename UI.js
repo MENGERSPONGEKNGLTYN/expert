@@ -122,8 +122,8 @@ async function displayNextQuestion() {
     // Если данные ещё не загружены
     if (questionsData.length === 0) {
         questionsData = await fetchAllQuestions();
-        getPreferencesName(questionsData);
     }
+    getPreferencesName(questionsData);
     if (!materialsData) {
         materialsData = await getMaterialsData();
     }

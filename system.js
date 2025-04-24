@@ -24,10 +24,10 @@ async function initSystem() {
 }
 
 // Сброс введённых данных
-function resetSystem() {
+async function resetSystem() {
     // Очищаем базу предпочтений
     session.query('retractall(preference(_, _)).');
-    session.answer(function () {
+    session.answer(async function () {
         // Очищаем результаты
         document.getElementById('action-header').textContent = 'Выбор материалов для ремонта';
         document.getElementById('result-container').style.display = 'none';
@@ -38,7 +38,8 @@ function resetSystem() {
 
         // Начинаем заново
         currentQuestionIndex = 0;
-        displayNextQuestion();
+        session.close();
+        await initSystem();
     });
 }
 
@@ -713,6 +714,7 @@ async function saveNewMaterial() {
 
         const result = await response.json();
         if (result.success) {
+            materialMap[latinName] = cyrillicName;
             alert('Материал успешно сохранен!');
             resetSystem();
         } else {
