@@ -2,7 +2,7 @@ let session;
 let consoleLOG = true;
 let questionsData = [];
 let currentQuestionIndex = 0;
-let drinksData;
+let materialsData;
 let binary = false;
 // ------------------------------- ЭКСПЕРТНАЯ СИСТЕМА -------------------------------
 // Загрузка программы Prolog
@@ -127,7 +127,6 @@ function getSelectedAnswers() {
     }
 }
 
-
 // Валидация ответов
 function validateAnswers(answers) {
     if (answers.length === 0) {
@@ -171,7 +170,7 @@ async function proceedToNextStep() {
     binary = false;
     // Условие окончания - заданы все вопросы
     if (currentQuestionIndex >= questionsData.length) {
-        await determineDrink();
+        await determineMaterial();
     } else {
         await displayNextQuestion();
     }
@@ -180,7 +179,7 @@ async function proceedToNextStep() {
 // ------------------------ ОБРАБОТКА РЕШЕНИЯ БЗ ------------------------
 
 // Определение напитка
-async function determineDrink() {
+async function determineMaterial() {
     try {
         if (consoleLOG)
             console.log("Начинаем определение напитка...");
@@ -192,11 +191,11 @@ async function determineDrink() {
         }
 
         // Ищем подходящий ответ
-        const suitableDrinks = await findSuitableDrinks(preferences);
-        displayDrinkResults(suitableDrinks);
+        const suitableMaterials = await findSuitableMaterials(preferences);
+        displayMaterialResults(suitableMaterials);
 
     } catch (error) {
-        handleDrinkDeterminationError(error);
+        handleMaterialDeterminationError(error);
     }
 }
 
@@ -269,9 +268,9 @@ function logPreferencesCount(count) {
 }
 
 // Главная функция
-async function findSuitableDrinks(preferences) {
+async function findSuitableMaterials(preferences) {
     try {
-        return calculateDrinkMatches(preferences, drinksData);
+        return calculateMaterialMatches(preferences, materialsData);
     } catch (error) {
         handleCalculationError(error);
         return [];
@@ -279,13 +278,13 @@ async function findSuitableDrinks(preferences) {
 }
 
 // Расчет соответствия напитков
-function calculateDrinkMatches(userPreferences, drinksData) {
+function calculateMaterialMatches(userPreferences, materialsData) {
     const results = [];
 
-    for (const [drinkName, drinkInfo] of Object.entries(drinksData)) {
-        const matchScore = calculateDrinkScore(drinkInfo, userPreferences);
+    for (const [materialName, materialInfo] of Object.entries(materialsData)) {
+        const matchScore = calculateMaterialScore(materialInfo, userPreferences);
         if (matchScore > 0) {
-            results.push(createDrinkResult(drinkName, matchScore));
+            results.push(createMaterialResult(materialName, matchScore));
         }
     }
 
@@ -293,13 +292,13 @@ function calculateDrinkMatches(userPreferences, drinksData) {
 }
 
 // Расчет score для одного напитка
-function calculateDrinkScore(drinkInfo, userPreferences) {
-    if (!drinkInfo?.conditions) return 0;
+function calculateMaterialScore(materialInfo, userPreferences) {
+    if (!materialInfo?.conditions) return 0;
 
     let totalScore = 0;
     let maxScore = 0;
 
-    for (const condition of drinkInfo.conditions) {
+    for (const condition of materialInfo.conditions) {
         const {currentScore, currentMax} = processCondition(condition, userPreferences);
         totalScore += currentScore;
         maxScore += currentMax;
@@ -326,7 +325,7 @@ function processCondition(condition, userPreferences) {
 }
 
 // Создание объекта результата
-function createDrinkResult(name, score) {
+function createMaterialResult(name, score) {
     return {
         name,
         value: parseFloat(score.toFixed(4))
@@ -344,22 +343,22 @@ function handleCalculationError(error) {
 }
 
 // ---------------------- Получение данных о напитках ----------------------------------------
-async function getDrinksData() {
-    const rules = session.rules['drink/1'] || [];
-    return await parseDrinkRules(rules);
+async function getMaterialsData() {
+    const rules = session.rules['material/1'] || [];
+    return await parseMaterialRules(rules);
 }
 
 // Парсинг всех правил напитков
-function parseDrinkRules(rules) {
+function parseMaterialRules(rules) {
     return rules.reduce((result, rule) => {
-        const drink = parseDrinkRule(rule);
-        return drink ? {...result, [drink.name]: drink.data} : result;
+        const material = parseMaterialRule(rule);
+        return material ? {...result, [material.name]: material.data} : result;
     }, {});
 }
 
 // Парсинг одного правила напитка
-function parseDrinkRule(rule) {
-    if (!isValidDrinkRule(rule)) return null;
+function parseMaterialRule(rule) {
+    if (!isValidMaterialRule(rule)) return null;
 
     const name = rule.head.args[0].id;
     const conditions = parseConditions(rule.body);
@@ -368,9 +367,9 @@ function parseDrinkRule(rule) {
 }
 
 // Проверка валидности правила
-function isValidDrinkRule(rule) {
+function isValidMaterialRule(rule) {
     const head = rule.head;
-    return head && head.id === 'drink' && head.args && head.args.length === 1;
+    return head && head.id === 'material' && head.args && head.args.length === 1;
 }
 
 // Парсинг условий напитка
@@ -411,15 +410,15 @@ function parseNumber(term) {
 // Обработка отсутствия предпочтений
 function handleNoPreferences() {
     console.log("Нет предпочтений для определения напитка");
-    showNoDrinkFound();
+    showNoMaterialFound();
 }
 
 // Отображение результатов
-function displayDrinkResults(drinks) {
-    if (drinks.length > 0) {
-        showAllDrinksResult(drinks);
+function displayMaterialResults(materials) {
+    if (materials.length > 0) {
+        showAllMaterialsResult(materials);
     } else {
-        showNoDrinkFound();
+        showNoMaterialFound();
     }
 }
 
@@ -484,10 +483,58 @@ function showAllPreferences() {
     session.answer(processAnswer);
 }
 
+function showAllMaterials() {
+    try {
+        // Очищаем контейнер перед выводом
+        const uiContainer = document.getElementById('preferences-display');
+        uiContainer.innerHTML = '';
+
+        // Проверяем тип данных и преобразуем при необходимости
+        let materials;
+
+        if (materialMap instanceof Map) {
+            // Если это Map - преобразуем в массив
+            materials = Array.from(materialMap.entries());
+        } else if (Array.isArray(materialMap)) {
+            // Если это массив - используем как есть
+            materials = materialMap;
+        } else if (typeof materialMap === 'object' && materialMap !== null) {
+            // Если это обычный объект - преобразуем в массив
+            materials = Object.entries(materialMap);
+        } else {
+            throw new Error('materialMap должен быть Map, массивом или объектом');
+        }
+
+        // Проверяем, есть ли материалы для отображения
+        if (materials.length === 0) {
+            uiContainer.innerHTML = '<div class="empty-message">Нет сохраненных материалов</div>';
+            return;
+        }
+
+        // Создаем элементы для каждого материала
+        materials.forEach(([key, value]) => {
+            const prefElement = document.createElement('div');
+            prefElement.className = 'preference-item';
+
+            // Если value - простое значение
+            prefElement.innerHTML = `
+                    <span class="pref-name">${key}</span>
+                    <span class="pref-weight">${value}</span>`;
+            uiContainer.appendChild(prefElement);
+        });
+
+    } catch (error) {
+        console.error('Ошибка при отображении материалов:', error);
+        uiContainer.innerHTML = `
+            <div class="error-message">
+                Ошибка загрузки материалов: ${error.message}
+            </div>
+        `;
+    }
+}
 
 // ---------------------- Добавление нового материала ----------------------------------------
-
-function addDrink() {
+function addMaterial() {
     document.getElementById('result-container').style.display = 'none';
     document.getElementById('result-container').innerHTML = '';
     const container = document.getElementById('question-container');
@@ -497,25 +544,28 @@ function addDrink() {
     // Загружаем все возможные предпочтения из Prolog
     fetchAllPreferences().then(preferences => {
         container.innerHTML = `
-            <div class="add-drink-form">
+            <div class="add-material-form">
                 <div>
-                    <label>Название материала (кириллица):</label>
-                    <input type="text" id="drink-name-cyrillic" class="form-input" placeholder="Например: Гипсокартон">
+                    <label>Название материала (кириллица):</label></br>
+                    <input type="text" id="material-name-cyrillic" class="form-input" placeholder="Например: Гипсокартон">
                 </div>
                 
                 <div class="surface-type">
-                    <label>Тип поверхности:</label>
-                    <div>
-                        <input type="radio" id="wall-type" name="surface-type" value="steni" checked>
-                        <label for="wall-type">Стены</label>
-                    </div>
-                    <div>
-                        <input type="radio" id="floor-type" name="surface-type" value="pol">
-                        <label for="floor-type">Пол</label>
-                    </div>
-                    <div>
-                        <input type="radio" id="ceiling-type" name="surface-type" value="potolok">
-                        <label for="ceiling-type">Потолок</label>
+                    <label>Тип поверхности:</label></br>
+                    <div id="radioTypeBtn">
+                    
+                        <div>
+                            <input type="radio" id="wall-type" name="surface-type" value="steni" checked>
+                            <label for="wall-type">Стены</label>
+                        </div>
+                        <div>
+                            <input type="radio" id="floor-type" name="surface-type" value="pol">
+                            <label for="floor-type">Пол</label>
+                        </div>
+                        <div>
+                            <input type="radio" id="ceiling-type" name="surface-type" value="potolok">
+                            <label for="ceiling-type">Потолок</label>
+                        </div>
                     </div>
                 </div>
                 
@@ -532,7 +582,7 @@ function addDrink() {
                 
                 <button class="btn" onclick="addPreferenceField()">+ Добавить предпочтение</button>
                 <div class="form-buttons">
-                    <button class="btn" onclick="saveNewDrink()">Сохранить</button>
+                    <button class="btn" onclick="saveNewMaterial()">Сохранить</button>
                     <button class="btn" onclick="resetSystem()">Отмена</button>
                 </div>
             </div>
@@ -544,12 +594,12 @@ function addDrink() {
 async function fetchAllPreferences() {
     const preferences = new Set();
 
-    // 1. Сначала получаем все drink/1 правила из сессии
-    const drinkRules = session.rules['drink/1'] || [];
+    // 1. Сначала получаем все material/1 правила из сессии
+    const materialRules = session.rules['material/1'] || [];
 
     // 2. Для каждого правила извлекаем предпочтения
-    for (const rule of drinkRules) {
-        if (rule.head && rule.head.id === 'drink' && rule.body) {
+    for (const rule of materialRules) {
+        if (rule.head && rule.head.id === 'material' && rule.body) {
             const conditions = parseConditionsLocal(rule.body);
             conditions.forEach(cond => {
                 if (cond.name) preferences.add(cond.name);
@@ -600,9 +650,9 @@ function addPreferenceField() {
         <select class="pref-name">
             <option value="" disabled selected>Выберите предпочтение</option>
             ${Array.from(document.querySelectorAll('.pref-name option'))
-                .filter(opt => opt.value)
-                .map(opt => opt.outerHTML)
-                .join('')}
+        .filter(opt => opt.value)
+        .map(opt => opt.outerHTML)
+        .join('')}
         </select>
         <input type="number" min="0" max="1" step="0.1" value="0.5" class="pref-weight">
         <button class="btn small" onclick="removePreferenceField(this)">×</button>
@@ -616,10 +666,10 @@ function removePreferenceField(button) {
 }
 
 // Сохранение нового материала
-async function saveNewDrink() {
+async function saveNewMaterial() {
     try {
         // Получаем данные из формы
-        const cyrillicName = document.getElementById('drink-name-cyrillic').value.trim();
+        const cyrillicName = document.getElementById('material-name-cyrillic').value.trim();
         const surfaceType = document.querySelector('input[name="surface-type"]:checked').value;
 
         // Транслитерация кириллицы в латиницу
@@ -644,7 +694,7 @@ async function saveNewDrink() {
 
         // Формируем словарь с данными
         const materialData = {
-            drink: latinName,
+            material: latinName,
             preferences: preferences.map(p => [p.name, p.weight])
         };
 
@@ -672,23 +722,4 @@ async function saveNewDrink() {
     } catch (error) {
         showError(error.message);
     }
-}
-
-// Функция транслитерации кириллицы в латиницу
-function transliterate(text) {
-    const cyrillicMap = {
-        'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo', 'ж': 'zh',
-        'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o',
-        'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u', 'ф': 'f', 'х': 'h', 'ц': 'ts',
-        'ч': 'ch', 'ш': 'sh', 'щ': 'sch', 'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu',
-        'я': 'ya'
-    };
-
-    return text.toLowerCase()
-        .split('')
-        .map(char => cyrillicMap[char] || char)
-        .join('')
-        .replace(/[^a-z0-9]/g, '_')
-        .replace(/_+/g, '_')
-        .replace(/^_|_$/g, '');
 }

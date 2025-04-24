@@ -10,7 +10,7 @@ app.use(express.json());
 app.use(cors());
 
 // Функция для вставки нового материала в правильное место
-async function insertMaterialToFile(drink, preferences) {
+async function insertMaterialToFile(material, preferences) {
     const filePath = path.join(__dirname, 'knowledge.pl');
     let content = fs.readFileSync(filePath, 'utf8');
 
@@ -26,7 +26,7 @@ async function insertMaterialToFile(drink, preferences) {
     }
 
     if (lastPreferenceDotIndex === -1) {
-        throw new Error('Не найдено ни одного preference с точкой в файле');
+        throw new Error('Не найдено ни одного предпочтения с точкой в файле');
     }
 
     let insertPosition = lastPreferenceDotIndex + 1;
@@ -35,7 +35,7 @@ async function insertMaterialToFile(drink, preferences) {
     }
 
     const newMaterial = [
-        `drink(${drink}) :-`,
+        `material(${material}) :-`,
         ...preferences.map(([name, weight], i) =>
             `    preference('${name}', ${weight})${i === preferences.length - 1 ? '.' : ','}`
         ),
@@ -48,19 +48,19 @@ async function insertMaterialToFile(drink, preferences) {
 
 app.post('/save-material', async (req, res) => {
     try {
-        if (!req.body?.drink || !req.body?.preferences) {
+        if (!req.body?.material || !req.body?.preferences) {
             return res.status(400).json({
                 success: false,
-                message: 'Необходимы drink и preferences'
+                message: 'Необходимы материал и предпочтение'
             });
         }
 
-        const { drink, preferences } = req.body;
+        const { material, preferences } = req.body;
 
         if (!Array.isArray(preferences)) {
             return res.status(400).json({
                 success: false,
-                message: 'Preferences должен быть массивом'
+                message: 'Предпочтения должны быть массивом'
             });
         }
 
@@ -72,7 +72,7 @@ app.post('/save-material', async (req, res) => {
             return [p[0], p[1]];
         });
 
-        await insertMaterialToFile(drink, validPreferences);
+        await insertMaterialToFile(material, validPreferences);
 
         res.json({
             success: true,

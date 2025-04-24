@@ -22,14 +22,24 @@ document.addEventListener('DOMContentLoaded', function() {
 // Обработчики для модального окна
 document.addEventListener('DOMContentLoaded', function() {
     const modal = document.getElementById("preferencesModal");
-    const btn = document.getElementById("showPreferencesBtn");
-    const span = document.getElementsByClassName("close")[0];
+    const modalHeader = document.getElementById("modalHeader");
+    const preferencesBtn = document.getElementById("showPreferencesBtn");
+    const materialsBtn = document.getElementById("showMaterialsBtn");
 
     // Показываем модальное окно при нажатии кнопки
-    btn.onclick = function() {
+    preferencesBtn.onclick = function() {
         modal.style.display = "block";
+        modalHeader.innerHTML = 'Добавленные предпочтения';
         showAllPreferences(); // Заполняем таблицу предпочтений
     }
+
+    // Показываем модальное окно при нажатии кнопки
+    materialsBtn.onclick = function() {
+        modal.style.display = "block";
+        modalHeader.innerHTML = 'Список материалов';
+        showAllMaterials(); // Заполняем таблицу предпочтений
+    }
+
 
     // Закрываем при клике вне окна
     window.onclick = function(event) {
@@ -38,19 +48,3 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
-
-// fixme !!!
-/* Функция для перезапуска системы
-function restartSystem() {
-    if(typeof initSystem === 'function') {
-        session.close();
-        initSystem();
-    }
-    // Скрываем результаты, если они были показаны
-    document.getElementById('result-container').classList.add('hidden');
-
-    // Очищаем предпочтения
-    document.getElementById('preferences-display').innerHTML = '';
-}
-
- */

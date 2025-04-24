@@ -25,22 +25,20 @@
 
 <!-- Основное содержимое -->
 <div id="content" class="hidden">
+    <!-- Меню -->
     <div id="btn-menu-container" class="question">
         <button class="btn" id="showPreferencesBtn">Показать все предпочтения</button>
+        <button class="btn" id="showMaterialsBtn">Список материалов</button>
         <button class="btn" id="restartBtn" onclick="resetSystem()">Начать сначала</button>
-        <button class="btn" id="addMaterialBtn" onclick="addDrink()">Добавить материал</button>
+        <button class="btn" id="addMaterialBtn" onclick="addMaterial()">Добавить материал</button>
     </div>
+
     <h1>Экспертная система</h1>
     <h2 id="action-header">Выбор материалов для ремонта</h2>
-    <div id="error-container" class="modal">
-        <div id="error-modal" class="modal-content error">
-        </div>
-    </div>
-    <!-- <div id="error-container" class="question error"></div>-->
     <div id="result-container" class="result"></div>
-
     <div id="question-container" class="question"></div>
 
+    <!-- Шаблон вывода вопросов с опциями ответов -->
     <template id="question-template">
         <h3 class="question-text"></h3>
         <div class="options"></div>
@@ -50,8 +48,14 @@
     <!-- Модальное окно для предпочтений -->
     <div id="preferencesModal" class="modal">
         <div class="modal-content">
-            <h2>Добавленные предпочтения</h2>
+            <h2 id="modalHeader">Добавленные предпочтения</h2>
             <div class="table" id="preferences-display"></div>
+        </div>
+    </div>
+
+    <!-- Модальное окно сообщений об ошибке -->
+    <div id="error-container" class="modal">
+        <div id="error-modal" class="modal-content error">
         </div>
     </div>
 </div>
