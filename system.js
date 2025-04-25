@@ -518,8 +518,8 @@ function showAllMaterials() {
 
             // Если value - простое значение
             prefElement.innerHTML = `
-                    <span class="pref-name">${key}</span>
-                    <span class="pref-weight">${value}</span>`;
+                    <span class="pref-name">${value}</span>
+                    <span class="pref-weight"></span>`;
             uiContainer.appendChild(prefElement);
         });
 
@@ -714,8 +714,8 @@ async function saveNewMaterial() {
         const result = await response.json();
         if (result.success) {
             materialMap[latinName] = cyrillicName;
-            alert('Материал успешно сохранен!');
             resetSystem();
+            showError('Материал успешно добавлен</br></br><img src="photo.jpg" style="width: 100%;">');
         } else {
             throw new Error(result.message || 'Ошибка при сохранении');
         }
@@ -723,4 +723,8 @@ async function saveNewMaterial() {
     } catch (error) {
         showError(error.message);
     }
+}
+
+function showImg(path) {
+    document.getElementById("test").innerHTML = '<img src="photo.jpg">';
 }

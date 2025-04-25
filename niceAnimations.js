@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Инициализируем систему
         initSystem();
-    }, 0);
+    }, 2000);
 });
 
 

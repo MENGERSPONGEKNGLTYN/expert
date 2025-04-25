@@ -268,7 +268,50 @@ material(ponos_3_steni) :-
     preference('srok_slujbi', 0.1),
     preference('vlagostoikost', 1).
 
+material(abrak_steni) :-
+    preference('ustoichivost_meh_povrejdeniyam', 0.5).
 
+material(uiuiuiuiapro_steni) :-
+    preference('skrit_nerovnosti', 0.5).
+
+material(uiuiuiuirvorvrolv_steni) :-
+    preference('ustoichivost_meh_povrejdeniyam', 0.5).
+
+material(sdfghjkl_steni) :-
+    preference('slojnost_podgotovki', 0.5).
+
+material(abrakadabrahfghjk_steni) :-
+    preference('varianti_dizaina', 0.5).
+
+material(fghjklfghjk_steni) :-
+    preference('slojnost_podgotovki', 0.5).
+
+material(dfghjkl_steni) :-
+    preference('ustoichivost_meh_povrejdeniyam', 0.5).
+
+material(xcvbn_steni) :-
+    preference('ustoichivost_meh_povrejdeniyam', 0.5).
+
+material(fghjkl_steni) :-
+    preference('myte', 0.5).
+
+material(werty_steni) :-
+    preference('ustoichivost_meh_povrejdeniyam', 0.5).
+
+material(xcvbn_steni) :-
+    preference('myagkost', 0.5).
+
+material(zxcvb_steni) :-
+    preference('skrit_nerovnosti', 0.5).
+
+material(bnm_steni) :-
+    preference('skrit_nerovnosti', 0.5).
+
+material(mnbv_steni) :-
+    preference('skrit_nerovnosti', 0.5).
+
+material(yvapro_steni) :-
+    preference('slojnost_podgotovki_base', 0.5).
 
 %----------------------------------------------------------------
 % Вопросы и варианты ответов

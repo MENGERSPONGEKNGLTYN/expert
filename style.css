@@ -670,3 +670,43 @@ input[type="text"]:focus::placeholder, input[type="number"]:focus::placeholder {
 .error {
     font-weight: bolder;
 }
+
+
+.bubbles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.bubble {
+    position: absolute;
+    background: rgb(97, 176, 255);
+    border-radius: 50%;
+    animation: float linear infinite;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0 50%;}
+    50% { background-position: 100% 50%;}
+    100% { background-position: 0 50%; }
+}
+
+@keyframes wave {
+    0% { transform: translateX(0) translateZ(0) scaleY(1); }
+    50% { transform: translateX(-25%) translateZ(0) scaleY(0.9); }
+    100% { transform: translateX(-50%) translateZ(0) scaleY(1); }
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-100vh) rotate(360deg);
+        opacity: 0;
+    }
+}

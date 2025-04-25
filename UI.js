@@ -221,4 +221,38 @@ function transliterate(text) {
         .replace(/^_|_$/g, '');
 }
 
+const bubblesContainer = document.getElementById('bubbles');
+function createBubble() {
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
 
+    // Случайные параметры
+    const colors = ['#a061ff', '#ff6f61', '#ffb347', '#2ecc71'];
+    const size = Math.random() * 20 + 5;
+    const posX = Math.random() * 100;
+    const duration = Math.random() * 100 + 10;
+    const delay = 0;
+
+    bubble.style.width = `${size}px`;
+    bubble.style.background = colors[Math.round(Math.random() * 3)];
+    bubble.style.height = `${size}px`;
+    bubble.style.left = `${posX}%`;
+    bubble.style.bottom = `-${size}px`;
+    bubble.style.animationDuration = `${duration}s`;
+    bubble.style.animationDelay = `${delay}s`;
+
+    bubblesContainer.appendChild(bubble);
+
+    // Удаляем пузырь после анимации
+    setTimeout(() => {
+        bubble.remove();
+    }, duration * 1000);
+}
+
+// Создаем несколько пузырей
+for (let i = 0; i < 40; i++) {
+    createBubble();
+}
+
+// Продолжаем создавать пузыри
+setInterval(createBubble, 500);
