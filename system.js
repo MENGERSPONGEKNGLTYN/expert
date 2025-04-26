@@ -298,13 +298,26 @@ function calculateMaterialScore(materialInfo, userPreferences) {
     let totalScore = 0;
     let maxScore = 0;
 
+    const allUserPrefNames = userPreferences.map(p => p.name);
+
+    // Сначала обрабатываем условия материала
     for (const condition of materialInfo.conditions) {
         const {currentScore, currentMax} = processCondition(condition, userPreferences);
         totalScore += currentScore;
         maxScore += currentMax;
     }
 
-    return maxScore > 0 ? totalScore / maxScore : 0;
+    // Затем добавляем штрафы за отсутствующие важные свойства
+    for (const userPref of userPreferences) {
+        const prefInMaterial = materialInfo.conditions.some(c => c.name === userPref.name);
+        if (!prefInMaterial && userPref.weight > 0) {
+            // Дополнительный штраф за отсутствие важного свойства
+            totalScore -= 0.3 * userPref.weight;
+            maxScore += userPref.weight;
+        }
+    }
+
+    return maxScore > 0 ? Math.max(0, totalScore / maxScore) : 0;
 }
 
 // Обработка одного условия
@@ -312,17 +325,28 @@ function processCondition(condition, userPreferences) {
     const condName = condition.name;
     const condWeight = Number(condition.value) || 0;
     let currentScore = 0;
+    let currentMax = condWeight;
 
     const userPref = userPreferences.find(p => p.name === condName);
+
     if (userPref) {
-        currentScore = condWeight * (Number(userPref.weight) || 0);
+        const userWeight = Number(userPref.weight) || 0;
+        currentScore = condWeight * userWeight;
+    } else {
+        const userPref = userPreferences.find(p => p.name === condName);
+        if (userPref && userPref.weight > 0) {
+            // Наказываем пропорционально важности свойства для пользователя
+            currentScore = -0.7 * userPref.weight;
+            currentMax += userPref.weight;
+        }
     }
 
     return {
         currentScore,
-        currentMax: condWeight
+        currentMax: currentMax
     };
 }
+
 
 // Создание объекта результата
 function createMaterialResult(name, score) {
